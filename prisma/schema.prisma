@@ -25,3 +25,10 @@ model Post {
   author    User    @relation(fields: [authorId], references: [id])
   authorId  Int
 }
+
+model History {
+  id  Int @id @default(autoincrement())
+  model String
+  operation String
+  args String
+}

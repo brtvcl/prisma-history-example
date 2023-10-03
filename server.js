@@ -1,20 +1,24 @@
 import express from 'express';
-import { prisma } from './prisma/prisma.js';
+import { controller } from './utils/controller.js';
 const app = express();
 const port = 3000;
 
 // MIDDLEWARES
 app.use(express.json());
 
+
+
 // API
 // READ USERS
-app.get('/users', async (req, res) => {
-    const users = await prisma.user.findMany({});
-    res.send({ users })
-});
+app.get('/users', controller(async function (req, res) {
+    const users = await req.prisma.user.findMany({});
+
+
+    res.send({ users: users });
+}));
 
 // CREATE USER
-app.post('/users', async (req, res) => {
+app.post('/users', controller(async (req, res) => {
     const user = req.body;
 
     // validate
@@ -23,20 +27,22 @@ app.post('/users', async (req, res) => {
     };
     if (typeof user.email != 'string' || typeof user.name != 'string') {
         return res.send({ error: 'email and name must be string' });
-    }
+    };
 
-    await prisma.user.create({
+    await req.prisma.user.create({
         data: {
             name: user.name,
             email: user.email
         }
     });
 
+    // throw new Error('end transaction');
+
     res.send({ success: true });
-});
+}));
 
 // UPDATE USER
-app.put('/users/:id', async (req, res) => {
+app.put('/users/:id', controller(async (req, res) => {
     const user = req.body;
     const id = req.params.id;
 
@@ -51,7 +57,7 @@ app.put('/users/:id', async (req, res) => {
         return res.send({ error: 'id missing' });
     }
 
-    await prisma.user.update({
+    await req.prisma.user.update({
         where: {
             id: id
         },
@@ -62,23 +68,23 @@ app.put('/users/:id', async (req, res) => {
     });
 
     res.send({ success: true });
-});
+}));
 
 // DELETE USER
-app.delete('/users/:id', async () => {
+app.delete('/users/:id', controller(async () => {
     const id = req.params.id;
     if (!id) {
         return res.send({ error: 'id missing' });
     };
 
-    await prisma.user.delete({
+    await req.prisma.user.delete({
         where: {
             id: id
         }
     });
 
     res.send({ success: true });
-});
+}));
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
